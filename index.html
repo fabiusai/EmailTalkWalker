@@ -3,9 +3,9 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" href="favicon.ico" type="image/x-icon" />
   <title>Email post social</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
   <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;700&display=swap" rel="stylesheet">
   <style>
     body {
@@ -96,9 +96,9 @@
     <input type="file" id="fileInput" accept=".csv" />
 
     <div class="buttons">
-      <button onclick="saveData()">Salva</button>
       <button onclick="generateText()">Genera Testo</button>
       <button onclick="copyText()">Copia</button>
+      <button onclick="saveData()">Salva</button>
       <button onclick="resetForm()">Reset</button>
     </div>
 
@@ -139,11 +139,13 @@
           Facebook: [],
           'X (Twitter)': [],
           Instagram: [],
-          Youtube: []
+          Youtube: [],
+          LinkedIn: []
         };
 
         urls.forEach(url => {
-          if (/facebook/i.test(url)) channels.Facebook.push(url);
+          if (/linkedin/i.test(url)) channels.LinkedIn.push(url);
+          else if (/facebook/i.test(url)) channels.Facebook.push(url);
           else if (/x\.com|twitter/i.test(url)) channels['X (Twitter)'].push(url);
           else if (/instagram/i.test(url)) channels.Instagram.push(url);
           else if (/youtube|youtu\.be/i.test(url)) channels.Youtube.push(url);
@@ -165,15 +167,6 @@
       navigator.clipboard.writeText(text);
     }
 
-    function resetForm() {
-      document.getElementById('recipient').value = '';
-      document.getElementById('greeting').value = 'Ciao';
-      document.getElementById('topic').value = '';
-      document.getElementById('showChannels').value = 'No';
-      document.getElementById('output').value = '';
-      urls = [];
-    }
-  
     function saveData() {
       const data = {
         recipient: document.getElementById('recipient').value,
@@ -183,6 +176,15 @@
       };
       localStorage.setItem('posteEmailData', JSON.stringify(data));
       alert("Dati salvati localmente.");
+    }
+
+    function resetForm() {
+      document.getElementById('recipient').value = '';
+      document.getElementById('greeting').value = 'Ciao';
+      document.getElementById('topic').value = '';
+      document.getElementById('showChannels').value = 'No';
+      document.getElementById('output').value = '';
+      urls = [];
     }
 
     window.onload = function () {
@@ -195,7 +197,6 @@
         document.getElementById('showChannels').value = data.showChannels || 'No';
       }
     };
-    </script>
-    
+  </script>
 </body>
 </html>
