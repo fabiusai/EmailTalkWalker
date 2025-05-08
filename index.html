@@ -1,0 +1,201 @@
+
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+  <title>Email post social</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Titillium Web', sans-serif;
+      margin: 0;
+      background: #ffffff;
+      color: #0033a0;
+    }
+    header {
+      background-color: #FFD800;
+      padding: 1rem 2rem;
+    }
+    header h1 {
+      font-weight: 700;
+      margin: 0;
+      font-size: 1.8rem;
+    }
+    header p {
+      margin: 0;
+      font-weight: 400;
+      font-size: 1rem;
+    }
+    main {
+      max-width: 800px;
+      margin: auto;
+      padding: 2rem;
+    }
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: 700;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.25rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    textarea {
+      resize: vertical;
+    }
+    .buttons {
+      margin-top: 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    button {
+      padding: 0.6rem 1.2rem;
+      background-color: #0033a0;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #00257a;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Email post social</h1>
+    <p>Fonte dati Talkwalker</p>
+  </header>
+  <main>
+    <label>Nome destinatario email:</label>
+    <input id="recipient" type="text" />
+
+    <label>Saluto:</label>
+    <select id="greeting">
+      <option value="Ciao">Ciao</option>
+      <option value="Buongiorno">Buongiorno</option>
+      <option value="Buonasera">Buonasera</option>
+    </select>
+
+    <label>Argomento del post:</label>
+    <input id="topic" type="text" />
+
+    <label>Mostra canali:</label>
+    <select id="showChannels">
+      <option value="No">No</option>
+      <option value="Sì">Sì</option>
+    </select>
+
+    <label>Carica file CSV:</label>
+    <input type="file" id="fileInput" accept=".csv" />
+
+    <div class="buttons">
+      <button onclick="saveData()">Salva</button>
+      <button onclick="generateText()">Genera Testo</button>
+      <button onclick="copyText()">Copia</button>
+      <button onclick="resetForm()">Reset</button>
+    </div>
+
+    <label>Testo generato:</label>
+    <textarea id="output" rows="12" readonly></textarea>
+  </main>
+
+  <script>
+    let urls = [];
+
+    document.getElementById('fileInput').addEventListener('change', function(evt) {
+      const file = evt.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const lines = e.target.result.split('\n');
+        urls = lines.map(line => {
+          const cells = line.split(',');
+          return cells[0]?.trim();
+        }).filter(url => url && url !== 'url');
+      };
+      reader.readAsText(file);
+    });
+
+    function generateText() {
+      const recipient = document.getElementById('recipient').value;
+      const greeting = document.getElementById('greeting').value;
+      const topic = document.getElementById('topic').value;
+      const showChannels = document.getElementById('showChannels').value;
+      const output = document.getElementById('output');
+
+      let text = `${greeting} ${recipient},\nti confermo che siamo online sui nostri canali social con i post dedicati all'argomento «${topic}».\n\nI link dei post sono i seguenti:\n\n`;
+
+      if (showChannels === 'No') {
+        text += urls.map(url => `- ${url}`).join('\n');
+      } else {
+        const channels = {
+          Facebook: [],
+          'X (Twitter)': [],
+          Instagram: [],
+          Youtube: []
+        };
+
+        urls.forEach(url => {
+          if (/facebook/i.test(url)) channels.Facebook.push(url);
+          else if (/x\.com|twitter/i.test(url)) channels['X (Twitter)'].push(url);
+          else if (/instagram/i.test(url)) channels.Instagram.push(url);
+          else if (/youtube|youtu\.be/i.test(url)) channels.Youtube.push(url);
+        });
+
+        for (const [channel, links] of Object.entries(channels)) {
+          if (links.length) {
+            text += `\n${channel}:\n` + links.map(link => `- ${link}`).join('\n') + '\n';
+          }
+        }
+      }
+
+      text += '\n\nUn saluto,\nFabio.';
+      output.value = text;
+    }
+
+    function copyText() {
+      const text = document.getElementById('output').value;
+      navigator.clipboard.writeText(text);
+    }
+
+    function resetForm() {
+      document.getElementById('recipient').value = '';
+      document.getElementById('greeting').value = 'Ciao';
+      document.getElementById('topic').value = '';
+      document.getElementById('showChannels').value = 'No';
+      document.getElementById('output').value = '';
+      urls = [];
+    }
+  
+    function saveData() {
+      const data = {
+        recipient: document.getElementById('recipient').value,
+        greeting: document.getElementById('greeting').value,
+        topic: document.getElementById('topic').value,
+        showChannels: document.getElementById('showChannels').value
+      };
+      localStorage.setItem('posteEmailData', JSON.stringify(data));
+      alert("Dati salvati localmente.");
+    }
+
+    window.onload = function () {
+      const saved = localStorage.getItem('posteEmailData');
+      if (saved) {
+        const data = JSON.parse(saved);
+        document.getElementById('recipient').value = data.recipient || '';
+        document.getElementById('greeting').value = data.greeting || 'Ciao';
+        document.getElementById('topic').value = data.topic || '';
+        document.getElementById('showChannels').value = data.showChannels || 'No';
+      }
+    };
+    </script>
+    
+</body>
+</html>
